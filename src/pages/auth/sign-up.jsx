@@ -5,13 +5,42 @@ import {
   Button,
   Typography,
 } from "@material-tailwind/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import signup from "/img/sign-up.jpg";
+import axios from "axios";
 
 export function SignUp() {
+  const navigate = useNavigate()
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try{
+      const response = await axios.post("http://localhost:8000/api/register/",{
+        name: username,
+        email: email,
+        password: password,
+      })
+      if(response.status === 200 || response.status === 201){
+        localStorage.setItem("otpEmail", email)
+        navigate("/auth/otp")
+      }
+    }catch(err){
+      console.error(err)
+      alert(err.response?.data?.detail || "Registration failed")
+    }finally{
+      setLoading(false)
+    }
+  };
+
   return (
     <section className="m-8 flex">
-            <div className="w-2/5 h-full hidden lg:block">
+      <div className="w-2/5 h-full hidden lg:block">
         <img
           src={signup}
           className="h-full w-full object-cover rounded-3xl"
@@ -20,10 +49,28 @@ export function SignUp() {
       <div className="w-full lg:w-3/5 flex flex-col items-center justify-center">
         <div className="text-center">
           <Typography variant="h2" className="font-bold mb-4">Join Us Today</Typography>
-          <Typography variant="paragraph" color="blue-gray" className="text-lg font-normal">Enter your email and password to register.</Typography>
+          <Typography variant="paragraph" color="blue-gray" className="text-lg font-normal">Enter your username, email and password to register.</Typography>
         </div>
+
+        {loading ? (
+        <div className="flex justify-center">
+          <div className="w-6 h-6 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+        </div>      
+        ) : (
         <form className="mt-8 mb-2 mx-auto w-80 max-w-screen-lg lg:w-1/2">
           <div className="mb-1 flex flex-col gap-6">
+            <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+              Your usename
+            </Typography>
+            <Input
+              size="lg"
+              placeholder="username"
+              className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+              labelProps={{
+                className: "before:content-none after:content-none",
+              }}
+              onChange={(e)=>setUsername(e.target.value)}
+            />
             <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
               Your email
             </Typography>
@@ -34,9 +81,23 @@ export function SignUp() {
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
+              onChange={(e)=>setEmail(e.target.value)}
+            />
+            <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+              Your password
+            </Typography>
+            <Input
+              size="lg"
+              placeholder="********"
+              type="password"
+              className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+              labelProps={{
+                className: "before:content-none after:content-none",
+              }}
+              onChange={(e)=>setPassword(e.target.value)}
             />
           </div>
-          <Button className="mt-6" fullWidth>
+          <Button className="mt-6" fullWidth onClick={handleSubmit}>
             Register Now
           </Button>
 
@@ -63,7 +124,9 @@ export function SignUp() {
             <Link to="/auth/sign-in" className="text-gray-900 ml-1">Sign in</Link>
           </Typography>
         </form>
+        )}
 
+        
       </div>
     </section>
   );

@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+    font-family: 'Cerlog';
+    src: url('../../src/fonts/cerlog-7ovgd.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}

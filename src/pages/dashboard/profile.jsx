@@ -18,14 +18,90 @@ import {
   Cog6ToothIcon,
   PencilIcon,
 } from "@heroicons/react/24/solid";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ProfileInfoCard, MessageCard } from "@/widgets/cards";
+import { EditProfileForm } from "@/widgets/forms";
 import { platformSettingsData, conversationsData, projectsData } from "@/data";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import api from "@/configs/api";
 
 export function Profile() {
+  const navigate = useNavigate()
+  const [isEditing, setIsEditing] = useState(false)
+  const BackendUrl = "http://localhost:8000"
+  const [profileData, setProfileData] = useState({
+    firstName: "",
+    email: "",
+    bio: "",
+    social: {
+      twitter: "",
+      linkedin: "",
+      github: "",
+    },
+    profileImage: null,
+    bannerImage: null,
+  })
+  
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("profile/", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+
+        const data = response.data;
+        setProfileData({
+          firstName: data.name || "",
+          email: data.email || "",
+          bio: data.bio || "",
+          social: data.social_links || {
+            twitter: "",
+            linkedin: "",
+            github: "",
+          },
+          profileImage: data.profile_image || null,
+          bannerImage: data.banner_image || null,
+        });
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleLogout = async (e)=>{
+    e.preventDefault()
+
+    const refreshToken = localStorage.getItem("refreshToken")
+
+    try{
+      await axios.post("http://localhost:8000/api/logout/",{
+        refresh: refreshToken,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }
+    )
+
+    localStorage.removeItem("accessToken")
+    localStorage.removeItem("refreshToken")
+    navigate("/auth/sign-in")
+    } catch (error){
+      console.log("Lougout failed: ", error.response?.data || error.message)
+    }
+  }
+
   return (
     <>
-      <div className="relative mt-8 h-72 w-full overflow-hidden rounded-xl bg-[url('/img/background-image.png')] bg-cover	bg-center">
+      <div className="relative mt-8 h-72 w-full overflow-hidden rounded-xl bg-cover	bg-center" alt="bannerImg" style={{
+        backgroundImage: `url(${BackendUrl}${profileData.bannerImage})`
+      }}>
         <div className="absolute inset-0 h-full w-full bg-gray-900/75" />
       </div>
       <Card className="mx-3 -mt-16 mb-6 lg:mx-4 border border-blue-gray-100">
@@ -33,41 +109,21 @@ export function Profile() {
           <div className="mb-10 flex items-center justify-between flex-wrap gap-6">
             <div className="flex items-center gap-6">
               <Avatar
-                src="/img/bruce-mars.jpeg"
-                alt="bruce-mars"
+                src= {`${BackendUrl}${profileData.profileImage}`}
+                alt="userImg"
                 size="xl"
                 variant="rounded"
                 className="rounded-lg shadow-lg shadow-blue-gray-500/40"
               />
               <div>
                 <Typography variant="h5" color="blue-gray" className="mb-1">
-                  Richard Davis
-                </Typography>
-                <Typography
-                  variant="small"
-                  className="font-normal text-blue-gray-600"
-                >
-                  CEO / Co-Founder
+                  {profileData.firstName}
                 </Typography>
               </div>
             </div>
-            <div className="w-96">
-              <Tabs value="app">
-                <TabsHeader>
-                  <Tab value="app">
-                    <HomeIcon className="-mt-1 mr-2 inline-block h-5 w-5" />
-                    App
-                  </Tab>
-                  <Tab value="message">
-                    <ChatBubbleLeftEllipsisIcon className="-mt-0.5 mr-2 inline-block h-5 w-5" />
-                    Message
-                  </Tab>
-                  <Tab value="settings">
-                    <Cog6ToothIcon className="-mt-1 mr-2 inline-block h-5 w-5" />
-                    Settings
-                  </Tab>
-                </TabsHeader>
-              </Tabs>
+            <div className="">
+            <button type="button" class="text-white bg-black hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center text-bold dark:bg-blue-600 dark:hover:bg-white dark:focus:ring-white" onClick={handleLogout}>
+            Logout</button>
             </div>
           </div>
           <div className="gird-cols-1 mb-12 grid gap-12 px-4 lg:grid-cols-2 xl:grid-cols-3">
@@ -98,56 +154,44 @@ export function Profile() {
                 ))}
               </div>
             </div>
-            <ProfileInfoCard
-              title="Profile Information"
-              description="Hi, I'm Alec Thompson, Decisions: If you can't decide, the answer is no. If two equally difficult paths, choose the one more painful in the short term (pain avoidance is creating an illusion of equality)."
-              details={{
-                "first name": "Alec M. Thompson",
-                mobile: "(44) 123 1234 123",
-                email: "alecthompson@mail.com",
-                location: "USA",
-                social: (
-                  <div className="flex items-center gap-4">
-                    <i className="fa-brands fa-facebook text-blue-700" />
-                    <i className="fa-brands fa-twitter text-blue-400" />
-                    <i className="fa-brands fa-instagram text-purple-500" />
-                  </div>
-                ),
-              }}
-              action={
-                <Tooltip content="Edit Profile">
-                  <PencilIcon className="h-4 w-4 cursor-pointer text-blue-gray-500" />
-                </Tooltip>
-              }
-            />
-            <div>
-              <Typography variant="h6" color="blue-gray" className="mb-3">
-                Platform Settings
-              </Typography>
-              <ul className="flex flex-col gap-6">
-                {conversationsData.map((props) => (
-                  <MessageCard
-                    key={props.name}
-                    {...props}
-                    action={
-                      <Button variant="text" size="sm">
-                        reply
-                      </Button>
-                    }
-                  />
-                ))}
-              </ul>
-            </div>
+            {
+              isEditing ? (
+                <EditProfileForm
+                  profileData={profileData}
+                  setProfileData={setProfileData}
+                  onSave={() => setIsEditing(false)}
+                  onCancel={() => setIsEditing(false)}
+                />
+              ) : (
+                <ProfileInfoCard
+                  title="About"
+                  description={profileData.bio}
+                  details={{
+                    "name": profileData.firstName,
+                    email: profileData.email,
+                    social: (
+                      <div className="flex items-center gap-4">
+                        {profileData.social.twitter && <a href={profileData.social.twitter} target="_blank">Twitter</a>}
+                        {profileData.social.linkedin && <a href={profileData.social.linkedin} target="_blank">LinkedIn</a>}
+                        {profileData.social.github && <a href={profileData.social.github} target="_blank">GitHub</a>}
+                      </div>
+                    ),
+                  }}
+                  action={
+                    <Tooltip content="Edit Profile">
+                      <PencilIcon
+                        onClick={() => setIsEditing(true)}
+                        className="h-4 w-4 cursor-pointer text-blue-gray-500"
+                      />
+                    </Tooltip>
+                  }
+                />
+              )
+            }
           </div>
           <div className="px-4 pb-4">
             <Typography variant="h6" color="blue-gray" className="mb-2">
-              Projects
-            </Typography>
-            <Typography
-              variant="small"
-              className="font-normal text-blue-gray-500"
-            >
-              Architects design houses
+              Your Blogs
             </Typography>
             <div className="mt-6 grid grid-cols-1 gap-12 md:grid-cols-2 xl:grid-cols-4">
               {projectsData.map(

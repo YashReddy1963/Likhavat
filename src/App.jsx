@@ -36,7 +36,6 @@ function App() {
         <Route path="otp" element={<OTP />} />
         <Route path="*" element={<Navigate to="/auth/sign-in" replace />} />
       </Route>
-
       <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
     </Routes>
   );

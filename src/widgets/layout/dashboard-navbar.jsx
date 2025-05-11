@@ -3,12 +3,14 @@ import {
   Navbar,
   Typography,
   IconButton,
+  Button,
   Breadcrumbs,
   Input,
 } from "@material-tailwind/react";
 import {
   BellIcon,
   Bars3Icon,
+  PencilIcon,
 } from "@heroicons/react/24/solid";
 import {
   useMaterialTailwindController,
@@ -64,6 +66,11 @@ export function DashboardNavbar() {
           <div className="mr-auto md:mr-4 md:w-56">
             <Input label="Search" />
           </div>
+
+          <IconButton variant="text" color="blue-gray">
+              <BellIcon className="h-5 w-5 text-blue-gray-500" />
+          </IconButton>
+
           <IconButton
             variant="text"
             color="blue-gray"
@@ -71,10 +78,6 @@ export function DashboardNavbar() {
             onClick={() => setOpenSidenav(dispatch, !openSidenav)}
           >
             <Bars3Icon strokeWidth={3} className="h-6 w-6 text-blue-gray-500" />
-          </IconButton>
-          
-          <IconButton variant="text" color="blue-gray">
-              <BellIcon className="h-5 w-5 text-blue-gray-500" />
           </IconButton>
         </div>
       </div>

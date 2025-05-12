@@ -22,6 +22,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { ProfileInfoCard, MessageCard } from "@/widgets/cards";
 import { EditProfileForm } from "@/widgets/forms";
 import { platformSettingsData, conversationsData, projectsData } from "@/data";
+import { faHandsClapping } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useEffect } from "react";
 import axios from "axios";
 import api from "@/configs/api";
@@ -30,7 +32,12 @@ export function Profile() {
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const BackendUrl = "http://localhost:8000"
+
   const [blogs, setBlogs] = useState([])
+  const [bookmarkedBlogs, setBookmarkedBlogs] = useState([])
+  const [savedBlogs, setSavedBlogs] = useState([])
+
+  const [activeTab, setActiveTab] = useState("yourBlogs")
   const [profileData, setProfileData] = useState({
     firstName: "",
     email: "",
@@ -84,16 +91,60 @@ export function Profile() {
         },
       })
       .then((res) => {
-        setBlogs(res.data);
+        setBlogs(res.data)
       })
       .catch((err) => {
         console.log("Failed to fetch blogs: ", err);
+      });
+
+      //fetching blogs saved by the user
+      axios.get("http://localhost:8000/api/bookmarks/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      })
+      .then((res) => {
+        const saved = res.data.map((bookmark) => bookmark.blog_data)
+        setSavedBlogs(saved)
+        const bookmarkedIds = res.data.map(bookmark => bookmark.blog)
+        setBookmarkedBlogs(bookmarkedIds)
+      })
+      .catch((err) => {
+        console.log("Failed to fetch saved blogs: ", err)
       });
     }
 
     fetchProfile();
   }, []);
 
+  //toogle function to keep the bookmarked icon set or delete a bookmark
+  const toggleBookmark = (blogId)=>{
+    const isBookmarked = bookmarkedBlogs.includes(blogId)
+
+    if(isBookmarked){
+      axios.delete(`http://localhost:8000/api/bookmarks/${blogId}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(()=>{
+        setBookmarkedBlogs(prev => prev.filter(id => id!==blogId))
+      })
+    } else {
+      console.log("Blog-Id: ", blogId)
+      axios.post(`http://localhost:8000/api/bookmarks/`, {
+        blog: blogId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(() => {
+        setBookmarkedBlogs(prev => [...prev, blogId])
+      })
+    }
+  }
+
+  //Logout function
   const handleLogout = async (e)=>{
     e.preventDefault()
 
@@ -209,11 +260,24 @@ export function Profile() {
             }
           </div>
           <div className="px-4 pb-4">
-            <Typography variant="h6" color="blue-gray" className="mb-2">
-              Your Blogs
+            <Typography variant="small" color="blue-gray" className="mb-2">
+              <ul className="flex gap-3 font-bold border-b border-blue-gray-100">
+                <li
+                  className={`cursor-pointer pb-2 ${activeTab === "yourBlogs" ? "border-b-2 border-blue-gray-700 text-blue-gray-700" : "text-blue-gray-500"}`}
+                  onClick={() => setActiveTab("yourBlogs")}
+                >
+                  Your blogs
+                </li>
+                <li
+                  className={`cursor-pointer pb-2 ${activeTab === "savedBlogs" ? "border-b-2 border-blue-gray-700 text-blue-gray-700" : "text-blue-gray-500"}`}
+                  onClick={() => setActiveTab("savedBlogs")}
+                >
+                  Saved blogs
+                </li>
+              </ul>
             </Typography>
             <div className="mt-6 grid grid-cols-1 gap-12 md:grid-cols-2 xl:grid-cols-4">
-            {blogs.map(
+            {(activeTab == "yourBlogs"? blogs : savedBlogs).map(
               (blog) => (
                 <Card key={blog.id} color="transparent" shadow={false}>
                   <CardHeader
@@ -222,7 +286,7 @@ export function Profile() {
                     className="mx-0 mt-0 mb-4 h-64 xl:h-40"
                   >
                     <img
-                      src={`${BackendUrl}${blog.cover_image}`}
+                      src={blog.cover_image.startsWith("http") ? blog.cover_image : `${BackendUrl}${blog.cover_image}`}
                       alt={blog.title}
                       className="h-full w-full object-cover"
                     />
@@ -245,9 +309,6 @@ export function Profile() {
                       variant="small"
                       className="font-normal text-blue-gray-500 mt-2"
                     >
-                      {(blog.tags.slice(0,3)).map((tag, index) => (
-                        <span key={index} className="text-xm">#{tag} </span>
-                      ))}
                     </Typography>
                     <Typography
                       color="blue-gray"
@@ -262,6 +323,12 @@ export function Profile() {
                         Read more
                       </Button>
                     </Link>
+                    <div>
+                      <FontAwesomeIcon icon={faHandsClapping} className="mr-4 text-blue-gray-200 text-2xl hover:text-blue-gray-700 hover:cursor-pointer" />
+                      <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                      bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
+                    }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                    </div>
                   </CardFooter>
                 </Card>
               )

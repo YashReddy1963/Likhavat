@@ -30,10 +30,14 @@ import {
 import projectsData from "@/data/projects-data";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { faHandsClapping } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 export function Home() {
   const [blogs, setBlogs] = useState([])
+  const [bookmarkedBlogs, setBookmarkedBlogs] = useState([])
+  const [likedBlogs, setLikedBlogs] = useState([])
 
   const stripHTML = (html) =>{
     const div = document.createElement("div")
@@ -42,6 +46,7 @@ export function Home() {
   }
 
   useEffect(()=>{
+    //fetching the blogs list
     axios.get("http://localhost:8000/api/blogs/all/")
     .then((res)=>{
       setBlogs(res.data)
@@ -49,7 +54,81 @@ export function Home() {
     .catch((err)=>{
       console.log("Failed to fetch blogs: ", err)
     })
+
+    //fetching the bookmarked blogs arraylist
+    axios.get("http://localhost:8000/api/bookmarks/", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }).then(res =>{
+      const bookmarkedIds = res.data.map(bookmark => bookmark.blog)
+      setBookmarkedBlogs(bookmarkedIds)
+    })
+
+    //fetching the liked blogs arrylist
+    axios.get("http://localhost:8000/api/likes/", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }).then(res=>{
+      const likedIds = res.data.map(like => like.blog)
+      setLikedBlogs(likedIds)
+    })
+
   }, [])
+
+  //toggle function to keep the bookmarked icon set or delete a bookmark
+  const toggleBookmark = (blogId)=>{
+    const isBookmarked = bookmarkedBlogs.includes(blogId)
+
+    if(isBookmarked){
+      axios.delete(`http://localhost:8000/api/bookmarks/${blogId}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(()=>{
+        setBookmarkedBlogs(prev => prev.filter(id => id!==blogId))
+      })
+    } else {
+      axios.post(`http://localhost:8000/api/bookmarks/`, {
+        blog: blogId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(() => {
+        setBookmarkedBlogs(prev => [...prev, blogId])
+      })
+    }
+  }
+
+
+  //toggle function to keep the liked(clap) icon set or unlike a blog
+  const toggleLike = (blogId) =>{
+    const isLiked = likedBlogs.includes(blogId)
+    if(isLiked){
+      axios.delete(`http://localhost:8000/api/likes/${blogId}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(()=>{
+        setLikedBlogs(prev => prev.filter(id => id!==blogId))
+      })
+    } else {
+      axios.post(`http://localhost:8000/api/likes/`, {
+        blog: blogId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }).then(() => {
+        setLikedBlogs(prev => [...prev, blogId])
+        console.log(likedBlogs)
+      })
+    }
+  }
 
   return (
     <div className="mt-12">
@@ -104,6 +183,15 @@ export function Home() {
                     Read more
                   </Button>
                 </Link>
+                <div>
+
+                <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
+                
+                <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                  bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
+                }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                
+                </div>
               </CardFooter>
             </Card>
           )

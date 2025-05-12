@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Dashboard, Auth, Landing, Story } from "@/layouts";
 import { SignIn, SignUp, OTP } from "@/pages/auth";
 import AuthRedirect from "./pages/auth/auth-redirect";
+import BlogDetail from "./pages/dashboard/blog-detail";
 
 function App() {
   return (
@@ -14,6 +15,9 @@ function App() {
       <Route path="/dashboard/*" element={<Dashboard />}>
         <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
       </Route>
+
+      {/* Blog path */}
+      <Route path="/dashboard/blog/:blogId" element={<BlogDetail />} />
 
       {/* Authentication paths */}
       <Route path="/auth/*" element={<Auth />}>

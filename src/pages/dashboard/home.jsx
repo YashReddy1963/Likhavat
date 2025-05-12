@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Card,
   CardHeader,
   CardBody,
+  CardFooter,
   IconButton,
   Menu,
   MenuHandler,
@@ -12,6 +13,7 @@ import {
   Avatar,
   Tooltip,
   Progress,
+  Button,
 } from "@material-tailwind/react";
 import {
   EllipsisVerticalIcon,
@@ -25,13 +27,87 @@ import {
   projectsTableData,
   ordersOverviewData,
 } from "@/data";
+import projectsData from "@/data/projects-data";
+import axios from "axios";
+import { Link } from "react-router-dom";
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 export function Home() {
+  const [blogs, setBlogs] = useState([])
+
+  const stripHTML = (html) =>{
+    const div = document.createElement("div")
+    div.innerHTML = html
+    return div.textContent || div.innerHTML || ""
+  }
+
+  useEffect(()=>{
+    axios.get("http://localhost:8000/api/blogs/all/")
+    .then((res)=>{
+      setBlogs(res.data)
+    })
+    .catch((err)=>{
+      console.log("Failed to fetch blogs: ", err)
+    })
+  }, [])
+
   return (
     <div className="mt-12">
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-        Hi there
+        {blogs.map(
+          (blog) => (
+            <Card key={blog.id} color="transparent" shadow={false}>
+              <CardHeader
+                floated={false}
+                color="gray"
+                className="mx-0 mt-0 mb-4 h-64 xl:h-40"
+              >
+                <img
+                  src={blog.cover_image}
+                  alt={blog.title}
+                  className="h-full w-full object-cover"
+                />
+              </CardHeader>
+              <CardBody className="py-0 px-1">
+                
+                <Typography
+                  variant="h5"
+                  color="blue-gray"
+                  className="mt-1 mb-2"
+                >
+                  {blog.title}
+                </Typography>
+                <Typography
+                  variant="small"
+                  className="font-normal text-blue-gray-500"
+                >
+                  {stripHTML(blog.content).slice(0,100)}...
+                </Typography>
+                <Typography
+                  variant="small"
+                  className="font-normal text-blue-gray-500 mt-2"
+                >
+                  {(blog.tags.slice(0,3)).map((tag, index) => (
+                    <span key={index} className="text-xm">#{tag} </span>
+                  ))}
+                </Typography>
+                <Typography
+                  color="blue-gray"
+                  className="mt-1 mb-2 text-sm"
+                >
+                  By - {blog.author_name}
+                </Typography>
+              </CardBody>
+              <CardFooter className="mt-3 flex items-center justify-between py-0 px-1">
+                <Link to={`/dashboard/blog/${blog.id}`}>
+                  <Button variant="outlined" size="sm">
+                    Read more
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          )
+        )}
       </div>
     </div>
   );

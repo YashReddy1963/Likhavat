@@ -30,6 +30,7 @@ export function Profile() {
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const BackendUrl = "http://localhost:8000"
+  const [blogs, setBlogs] = useState([])
   const [profileData, setProfileData] = useState({
     firstName: "",
     email: "",
@@ -43,9 +44,15 @@ export function Profile() {
     bannerImage: null,
   })
   
+  const stripHTML = (html) =>{
+    const div = document.createElement("div")
+    div.innerHTML = html
+    return div.textContent || div.innerHTML || ""
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
+      //fetching user profile detials
       try {
         const response = await api.get("profile/", {
           headers: {
@@ -65,11 +72,24 @@ export function Profile() {
           },
           profileImage: data.profile_image || null,
           bannerImage: data.banner_image || null,
-        });
+        })
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       }
-    };
+
+      //fetching blogs created by user
+      axios.get("http://localhost:8000/api/userblog/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      })
+      .then((res) => {
+        setBlogs(res.data);
+      })
+      .catch((err) => {
+        console.log("Failed to fetch blogs: ", err);
+      });
+    }
 
     fetchProfile();
   }, []);
@@ -88,7 +108,6 @@ export function Profile() {
         },
       }
     )
-
     localStorage.removeItem("accessToken")
     localStorage.removeItem("refreshToken")
     navigate("/auth/sign-in")
@@ -194,66 +213,59 @@ export function Profile() {
               Your Blogs
             </Typography>
             <div className="mt-6 grid grid-cols-1 gap-12 md:grid-cols-2 xl:grid-cols-4">
-              {projectsData.map(
-                ({ img, title, description, tag, route, members }) => (
-                  <Card key={title} color="transparent" shadow={false}>
-                    <CardHeader
-                      floated={false}
-                      color="gray"
-                      className="mx-0 mt-0 mb-4 h-64 xl:h-40"
+            {blogs.map(
+              (blog) => (
+                <Card key={blog.id} color="transparent" shadow={false}>
+                  <CardHeader
+                    floated={false}
+                    color="gray"
+                    className="mx-0 mt-0 mb-4 h-64 xl:h-40"
+                  >
+                    <img
+                      src={`${BackendUrl}${blog.cover_image}`}
+                      alt={blog.title}
+                      className="h-full w-full object-cover"
+                    />
+                  </CardHeader>
+                  <CardBody className="py-0 px-1">
+                    <Typography
+                      variant="h5"
+                      color="blue-gray"
+                      className="mt-1 mb-2"
                     >
-                      <img
-                        src={img}
-                        alt={title}
-                        className="h-full w-full object-cover"
-                      />
-                    </CardHeader>
-                    <CardBody className="py-0 px-1">
-                      <Typography
-                        variant="small"
-                        className="font-normal text-blue-gray-500"
-                      >
-                        {tag}
-                      </Typography>
-                      <Typography
-                        variant="h5"
-                        color="blue-gray"
-                        className="mt-1 mb-2"
-                      >
-                        {title}
-                      </Typography>
-                      <Typography
-                        variant="small"
-                        className="font-normal text-blue-gray-500"
-                      >
-                        {description}
-                      </Typography>
-                    </CardBody>
-                    <CardFooter className="mt-6 flex items-center justify-between py-0 px-1">
-                      <Link to={route}>
-                        <Button variant="outlined" size="sm">
-                          view project
-                        </Button>
-                      </Link>
-                      <div>
-                        {members.map(({ img, name }, key) => (
-                          <Tooltip key={name} content={name}>
-                            <Avatar
-                              src={img}
-                              alt={name}
-                              size="xs"
-                              variant="circular"
-                              className={`cursor-pointer border-2 border-white ${
-                                key === 0 ? "" : "-ml-2.5"
-                              }`}
-                            />
-                          </Tooltip>
-                        ))}
-                      </div>
-                    </CardFooter>
-                  </Card>
-                )
-              )}
+                      {blog.title}
+                    </Typography>
+                    <Typography
+                      variant="small"
+                      className="font-normal text-blue-gray-500"
+                    >
+                      {stripHTML(blog.content).slice(0,100)}...
+                    </Typography>
+                    <Typography
+                      variant="small"
+                      className="font-normal text-blue-gray-500 mt-2"
+                    >
+                      {(blog.tags.slice(0,3)).map((tag, index) => (
+                        <span key={index} className="text-xm">#{tag} </span>
+                      ))}
+                    </Typography>
+                    <Typography
+                      color="blue-gray"
+                      className="mt-1 mb-2 text-sm"
+                    >
+                      By - {blog.author_name}
+                    </Typography>
+                  </CardBody>
+                  <CardFooter className="mt-3 flex items-center justify-between py-0 px-1">
+                    <Link to={`/dashboard/blog/${blog.id}`}>
+                      <Button variant="outlined" size="sm">
+                        Read more
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              )
+            )}
             </div>
           </div>
         </CardBody>

@@ -32,14 +32,18 @@ export function Profile() {
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const BackendUrl = "http://localhost:8000"
+  const [userId, setUserId] = useState()
 
   const [blogs, setBlogs] = useState([])
   const [bookmarkedBlogs, setBookmarkedBlogs] = useState([])
   const [savedBlogs, setSavedBlogs] = useState([])
   const [likedBlogs, setLikedBlogs] = useState([])
+  const [followers, setFollowers] = useState()
+  const [following, setFollowing] = useState()
 
   const [activeTab, setActiveTab] = useState("yourBlogs")
   const [profileData, setProfileData] = useState({
+    id:"",
     firstName: "",
     email: "",
     bio: "",
@@ -66,9 +70,9 @@ export function Profile() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           },
-        });
-
-        const data = response.data;
+        })
+        setUserId(response.data.id)
+        const data = response.data
         setProfileData({
           firstName: data.name || "",
           email: data.email || "",
@@ -128,6 +132,17 @@ export function Profile() {
     fetchProfile();
   }, []);
 
+  useEffect(()=>{
+
+    //get followers-following count of current user
+    axios.get(`http://localhost:8000/api/follow-count/${userId}/`)
+    .then(res => {
+      setFollowers(res.data.followers)
+      setFollowing(res.data.following)
+    })
+
+  }, [userId])
+
   //toogle function to keep the bookmarked icon set or delete a bookmark
   const toggleBookmark = (blogId)=>{
     const isBookmarked = bookmarkedBlogs.includes(blogId)
@@ -141,7 +156,6 @@ export function Profile() {
         setBookmarkedBlogs(prev => prev.filter(id => id!==blogId))
       })
     } else {
-      console.log("Blog-Id: ", blogId)
       axios.post(`http://localhost:8000/api/bookmarks/`, {
         blog: blogId,
       },
@@ -224,9 +238,19 @@ export function Profile() {
               />
               <div>
                 <Typography variant="h5" color="blue-gray" className="mb-1">
-                  {profileData.firstName}
+                  {profileData.firstName}{profileData.id}
                 </Typography>
               </div>
+              <Typography color="blue-gray" className="flex gap-4">
+                  <div>
+                    <Typography variant="h6" className="flex justify-center items-center">{followers}</Typography>
+                    <Typography variant="small" className="">Followers</Typography>
+                  </div>
+                  <div>
+                    <Typography variant="h6" className="flex justify-center items-center">{following}</Typography>
+                    <Typography variant="small">Following</Typography>
+                  </div>
+              </Typography>
             </div>
             <div className="">
             <button type="button" class="text-white bg-black hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center text-bold dark:bg-blue-600 dark:hover:bg-white dark:focus:ring-white" onClick={handleLogout}>
@@ -303,13 +327,13 @@ export function Profile() {
                   className={`cursor-pointer pb-2 ${activeTab === "yourBlogs" ? "border-b-2 border-blue-gray-700 text-blue-gray-700" : "text-blue-gray-500"}`}
                   onClick={() => setActiveTab("yourBlogs")}
                 >
-                  Your blogs
+                  Your Blogs
                 </li>
                 <li
                   className={`cursor-pointer pb-2 ${activeTab === "savedBlogs" ? "border-b-2 border-blue-gray-700 text-blue-gray-700" : "text-blue-gray-500"}`}
                   onClick={() => setActiveTab("savedBlogs")}
                 >
-                  Saved blogs
+                  Saved Blogs
                 </li>
               </ul>
             </Typography>

@@ -1,11 +1,11 @@
 import {
   HomeIcon,
   UserCircleIcon,
-  TableCellsIcon,
+  ChartBarIcon,
   InformationCircleIcon,
   PencilIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, BlogEditor } from "@/pages/dashboard";
+import { Home, Profile, Analytics, Notifications, BlogEditor } from "@/pages/dashboard";
 import { element } from "prop-types";
 
 const icon = {
@@ -35,10 +35,10 @@ export const routes = [
         element: <BlogEditor />,
       },
       {
-        icon: <TableCellsIcon {...icon} />,
-        name: "tables",
-        path: "/tables",
-        element: <Tables />,
+        icon: <ChartBarIcon {...icon} />,
+        name: "analytics",
+        path: "/analytics",
+        element: <Analytics />,
       },
       {
         icon: <InformationCircleIcon {...icon} />,

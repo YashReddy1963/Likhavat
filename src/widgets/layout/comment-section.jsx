@@ -39,6 +39,13 @@ export default function CommentSection({ blogId }) {
     return comments.map(comment => (
       <div key={comment.id} className="ml-4 mt-2 border-l pl-4 mb-9">
         <p><Typography variant="h6" color="blue-gray">{comment.user_name}</Typography> <Typography color="blue-gray">{comment.content}</Typography></p>
+        <Typography variant="small" color="blue-gray">
+        {new Date(comment.created_at).toLocaleDateString('en-US',{
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                })}
+        </Typography>
         <button
           className="text-sm text-blue-500"
           onClick={() => {

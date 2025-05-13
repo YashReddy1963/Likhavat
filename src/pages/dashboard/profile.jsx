@@ -36,6 +36,7 @@ export function Profile() {
   const [blogs, setBlogs] = useState([])
   const [bookmarkedBlogs, setBookmarkedBlogs] = useState([])
   const [savedBlogs, setSavedBlogs] = useState([])
+  const [likedBlogs, setLikedBlogs] = useState([])
 
   const [activeTab, setActiveTab] = useState("yourBlogs")
   const [profileData, setProfileData] = useState({
@@ -114,6 +115,16 @@ export function Profile() {
       });
     }
 
+    //fetching the liked blogs arrylist
+    axios.get("http://localhost:8000/api/likes/", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    }).then(res=>{
+      const likedIds = res.data.map(like => like.blog)
+      setLikedBlogs(likedIds)
+    })
+
     fetchProfile();
   }, []);
 
@@ -143,6 +154,32 @@ export function Profile() {
       })
     }
   }
+
+    //toggle function to keep the liked(clap) icon set or unlike a blog
+    const toggleLike = (blogId) =>{
+      const isLiked = likedBlogs.includes(blogId)
+      if(isLiked){
+        axios.delete(`http://localhost:8000/api/likes/${blogId}/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }).then(()=>{
+          setLikedBlogs(prev => prev.filter(id => id!==blogId))
+        })
+      } else {
+        axios.post(`http://localhost:8000/api/likes/`, {
+          blog: blogId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }).then(() => {
+          setLikedBlogs(prev => [...prev, blogId])
+          console.log(likedBlogs)
+        })
+      }
+    }
 
   //Logout function
   const handleLogout = async (e)=>{
@@ -324,7 +361,8 @@ export function Profile() {
                       </Button>
                     </Link>
                     <div>
-                      <FontAwesomeIcon icon={faHandsClapping} className="mr-4 text-blue-gray-200 text-2xl hover:text-blue-gray-700 hover:cursor-pointer" />
+                    <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
+
                       <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
                       bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
                     }`} onClick={()=>toggleBookmark(blog.id)}></i>

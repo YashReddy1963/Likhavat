@@ -9,6 +9,7 @@ import {
 } from "@/widgets/layout";
 import routes from "@/routes";
 import { Link } from "react-router-dom";
+import CommentSection from "@/widgets/layout/comment-section";
 import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -38,10 +39,7 @@ export function BlogDetail() {
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
       <BlogSideNav
-        routes={routes}
-        brandImg={
-          sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
-        }
+        authorId = {blog.author}
       />
       <div className="p-7 xl:ml-80">
         <DashboardNavbar/>
@@ -63,7 +61,7 @@ export function BlogDetail() {
         <Typography className="flex">
             <img
                 src={`${BackendUrl}${blog.author_image}`}
-                alt={blog.title}
+                alt={blog.author_name}
                 className="w-10 object-cover mb-6 rounded-lg"
               />
               <Typography  variant="h6" color="blue-gray" className="m-2" >
@@ -88,8 +86,8 @@ export function BlogDetail() {
                     <span key={index} className="text-xm">#{tag} </span>
                   ))}
           </Typography>
+          <CommentSection blogId={blogId} />
       </div>
-      
     </div>
   );
 }

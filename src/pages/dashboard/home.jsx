@@ -190,7 +190,6 @@ export function Home() {
                 <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
                   bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
                 }`} onClick={()=>toggleBookmark(blog.id)}></i>
-                
                 </div>
               </CardFooter>
             </Card>

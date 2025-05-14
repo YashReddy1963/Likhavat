@@ -67,10 +67,6 @@ export function DashboardNavbar() {
             <Input label="Search" />
           </div>
 
-          <IconButton variant="text" color="blue-gray">
-              <BellIcon className="h-5 w-5 text-blue-gray-500" />
-          </IconButton>
-
           <IconButton
             variant="text"
             color="blue-gray"

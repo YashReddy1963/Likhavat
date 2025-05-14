@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
+  Tooltip,
 } from "@material-tailwind/react";
 import { faHandsClapping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -128,7 +129,7 @@ export function BlogSideNav({ brandName, authorId }) {
       <div
         className={`relative`}
       >
-        <Link to="/" className="py-6 px-8 text-center">
+        <Link to="/dashboard/home" className="py-6 px-8 text-center">
           <Typography
             variant="h6"
             color={sidenavType === "dark" ? "white" : "blue-gray"}
@@ -180,12 +181,14 @@ export function BlogSideNav({ brandName, authorId }) {
                   </Button>
                 </Link>
                 <div>
-
-                <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
-                
-                <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
-                  bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
-                }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                <Tooltip content="Like">
+                        <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
+                      </Tooltip>
+                      <Tooltip content="Save">
+                        <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                        bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
+                        }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                      </Tooltip>
                 </div>
               </CardFooter>
             </Card>

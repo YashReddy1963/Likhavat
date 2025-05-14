@@ -55,7 +55,7 @@ export function EditProfileForm({ profileData, setProfileData, onSave, onCancel}
         } catch(err){
             console.error("Unable to udpate, please try again later!", err.response?.data || err.message)
         }
-
+        window.location.reload()
         onSave()
     }
 

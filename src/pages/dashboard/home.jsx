@@ -148,7 +148,6 @@ export function Home() {
                 />
               </CardHeader>
               <CardBody className="py-0 px-1">
-                
                 <Typography
                   variant="h5"
                   color="blue-gray"
@@ -184,12 +183,14 @@ export function Home() {
                   </Button>
                 </Link>
                 <div>
-
-                <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
-                
-                <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
-                  bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
-                }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                <Tooltip content="Like">
+                        <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(blog.id)}/>
+                      </Tooltip>
+                      <Tooltip content="Save">
+                        <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                        bookmarkedBlogs.includes(blog.id)? "text-blue-gray-700" : "text-blue-gray-200"
+                        }`} onClick={()=>toggleBookmark(blog.id)}></i>
+                      </Tooltip>
                 </div>
               </CardFooter>
             </Card>

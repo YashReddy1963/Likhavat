@@ -1,4 +1,4 @@
-import { Routes, Route, Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Outlet, useNavigate, Navigate } from "react-router-dom";
 import { Cog6ToothIcon } from "@heroicons/react/24/solid";
 import { IconButton } from "@material-tailwind/react";
 import {
@@ -21,7 +21,7 @@ export function Dashboard() {
     if(!token){
       navigate("/auth/sign-in")
     }
-  })
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
@@ -41,6 +41,8 @@ export function Dashboard() {
                 <Route exact path={path} element={element} />
               ))
           )}
+
+          <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
         </Routes>
       </div>
     </div>

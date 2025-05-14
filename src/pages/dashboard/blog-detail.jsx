@@ -1,6 +1,6 @@
 import { Routes, Route, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Cog6ToothIcon } from "@heroicons/react/24/solid";
-import { IconButton, Typography } from "@material-tailwind/react";
+import { IconButton, Typography, Tooltip } from "@material-tailwind/react";
 import {
   BlogSideNav,
   DashboardNavbar,
@@ -23,6 +23,7 @@ export function BlogDetail() {
 
   const [showModal, setShowModal] = useState(false)
   const [modalTitle, setModalTitle] = useState("")
+  const [isPlaying, setIsPlaying] = useState(false)
   const [userList, setUserList] = useState([])
   const [followers, setFollowers] = useState()
   const [following, setFollowing] = useState()
@@ -99,6 +100,17 @@ export function BlogDetail() {
     })
   }
 
+  //used to toggle play of blog audio
+  const togglePlay = () => {
+    const audio = document.getElementById(`blog-audio-${blogId}`);
+    if (audio.paused) {
+      audio.play();
+      setIsPlaying(true);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  }
 
   if(!blog) return <div>This blog doesn't exist!</div>
 
@@ -116,18 +128,24 @@ export function BlogDetail() {
             {blog.title}
           </Typography>
           <Typography className="flex">
+
             <img
               src={`${BackendUrl}${blog.author_image}`}
               alt={blog.author_name}
               className="w-10 object-cover mb-6 rounded-lg"
             />
-            <Typography variant="h6" color="blue-gray" className="m-2">
+            <Typography variant="h6" color="blue-gray" className="m-2 flex gap-2">
               <Link>{blog.author_name}</Link> ·{" "}
               {new Date(blog.created_at).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
               })}
+              <Tooltip content="Audio Blog">
+              <Typography variant="h6" color="blue-gray" onClick={togglePlay} className="cursor-pointer">
+              · {isPlaying ? "Pause 🔈" : "Play 🔊"}
+              </Typography>
+            </Tooltip>
             </Typography>
           </Typography>
             

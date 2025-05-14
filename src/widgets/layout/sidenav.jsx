@@ -8,15 +8,36 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { useMaterialTailwindController, setOpenSidenav } from "@/context";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export function Sidenav({ brandImg, brandName, routes }) {
+
+  const [unseenCount, setUnseenCount] = useState("")
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavColor, sidenavType, openSidenav } = controller;
   const sidenavTypes = {
     dark: "bg-gradient-to-br from-gray-800 to-gray-900",
     white: "bg-white shadow-sm",
     transparent: "bg-transparent",
-  };
+  }
+
+  useEffect(() => {
+    const fetchUnseenCount = async() => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/blogs/notifications/unseen-count/", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+        setUnseenCount(response.data.count);
+      } catch (err) {
+        console.error("Failed to fetch unseen count: ", err);
+      }
+    }
+
+    fetchUnseenCount()
+  }, [])
 
   return (
     <aside
@@ -60,10 +81,13 @@ export function Sidenav({ brandImg, brandName, routes }) {
                 </Typography>
               </li>
             )}
-            {pages.map(({ icon, name, path }) => (
-              <li key={name}>
-                <NavLink to={`/${layout}${path}`}>
-                  {({ isActive }) => (
+            {pages.map(({ icon, name, path }) => {
+              const isNotifications = name === "notifications";
+              const isActive = location.pathname.includes(path);
+            
+              return (
+                <li key={name} className="relative">
+                  <NavLink to={`/${layout}${path}`}>
                     <Button
                       variant={isActive ? "gradient" : "text"}
                       color={
@@ -83,11 +107,16 @@ export function Sidenav({ brandImg, brandName, routes }) {
                       >
                         {name}
                       </Typography>
+                      {isNotifications && unseenCount > 0 && (
+                        <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                          {unseenCount}
+                        </span>
+                      )}
                     </Button>
-                  )}
-                </NavLink>
-              </li>
-            ))}
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         ))}
       </div>

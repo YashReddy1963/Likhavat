@@ -100,7 +100,7 @@ export function Analytics() {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }).then(()=>{
-        setLikedBlogs(prev => prev.filter(id => id!==blogId))
+        setLikedBlogsIds(prev => prev.filter(id => id!==blogId))
       })
     } else {
       axios.post(`http://localhost:8000/api/likes/`, {
@@ -111,7 +111,7 @@ export function Analytics() {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }).then(() => {
-        setLikedBlogs(prev => [...prev, blogId])
+        setLikedBlogsIds(prev => [...prev, blogId])
         console.log(likedBlogsIds)
       })
     }
@@ -261,12 +261,14 @@ export function Analytics() {
                     </Button>
                   </Link>
                   <div>
-
-                  <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogsIds.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(like.id)}/>
-                  
-                  <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
-                    bookmarkedBlogs.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"
-                  }`} onClick={()=>toggleBookmark(like.id)}></i>
+                  <Tooltip content="Like">
+                        <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogsIds.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(like.id)}/>
+                      </Tooltip>
+                      <Tooltip content="Save">
+                        <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                        bookmarkedBlogs.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"
+                        }`} onClick={()=>toggleBookmark(like.id)}></i>
+                      </Tooltip>
                   </div>
                 </CardFooter>
               </Card>

@@ -6,7 +6,6 @@ import {
   PencilIcon,
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Analytics, Notifications, BlogEditor } from "@/pages/dashboard";
-import { element } from "prop-types";
 
 const icon = {
   className: "w-5 h-5 text-inherit",

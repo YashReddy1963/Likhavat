@@ -112,7 +112,7 @@ export function BlogDetail() {
     }
   }
 
-  if(!blog) return <div>This blog doesn't exist!</div>
+  if(!blog) return <div>The blog is being loaded!!</div>
 
   return (
     <div className="flex min-h-screen bg-blue-gray-50/50">
@@ -141,6 +141,11 @@ export function BlogDetail() {
                 month: "short",
                 day: "numeric",
               })}
+              
+              <audio
+                id={`blog-audio-${blogId}`}
+                src={`http://localhost:8000/api/blogs/${blogId}/tts/`}
+              />
               <Tooltip content="Audio Blog">
               <Typography variant="h6" color="blue-gray" onClick={togglePlay} className="cursor-pointer">
               · {isPlaying ? "Pause 🔈" : "Play 🔊"}

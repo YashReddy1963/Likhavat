@@ -7,7 +7,6 @@ import {
   Chip,
   CardFooter,
   Button,
-  Tooltip,
   Progress,
 } from "@material-tailwind/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
@@ -17,8 +16,43 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { faHandsClapping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts"
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+const shortenTitle = (title) => {
+  const words = title.split(" ");
+  return words.slice(0, 2).join(" ") + (words.length > 2 ? "..." : "");
+};
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border border-gray-300 rounded shadow">
+        <p className="text-sm font-medium text-gray-700">{payload[0].payload.title}</p>
+        <p className="text-xs text-gray-600">Likes: {payload[0].value}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export function Analytics() {
+  const[months, setMonths] = useState([])
+  const[selectedMonth, setSelectedMonth] = useState("")
+  const[analyticsData, setAnalyticsData] = useState(null)
   const [blogs, setBlogs] = useState([])
   const [bookmarkedBlogs, setBookmarkedBlogs] = useState([])
   const [likedBlogsIds, setLikedBlogsIds] = useState([])
@@ -29,6 +63,37 @@ export function Analytics() {
     div.innerHTML = html
     return div.textContent || div.innerHTML || ""
   }
+
+  //fetching the list of month
+  useEffect(() => {
+    const fetchMonths = async () =>{
+        try {
+        const response = await fetch('http://localhost:8000/api/analytics/blog-months/', {
+          headers:{
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        })
+        const data = await response.json();
+        setMonths(data);
+      } catch (error) {
+        console.error('Failed to fetch months:', error);
+      }
+    }
+    fetchMonths()
+  }, []);
+
+  //fetching analytics data of selected month
+  useEffect(() => {
+    if (selectedMonth) {
+      fetch(`http://localhost:8000/api/analytics/blog-analytics/?month=${selectedMonth}`, {
+        headers:{
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      })
+        .then((res) => res.json())
+        .then(setAnalyticsData)
+    }
+  }, [selectedMonth]);
 
   useEffect(()=>{
     //fetching the blogs list
@@ -122,92 +187,89 @@ export function Analytics() {
       <Card>
         <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
           <Typography variant="h6" color="white">
-            Authors Table
+            Blog Analytics
           </Typography>
         </CardHeader>
         <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
-          <table className="w-full min-w-[640px] table-auto">
-            <thead>
-              <tr>
-                {["author", "function", "status", "employed", ""].map((el) => (
-                  <th
-                    key={el}
-                    className="border-b border-blue-gray-50 py-3 px-5 text-left"
-                  >
-                    <Typography
-                      variant="small"
-                      className="text-[11px] font-bold uppercase text-blue-gray-400"
-                    >
-                      {el}
-                    </Typography>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {authorsTableData.map(
-                ({ img, name, email, job, online, date }, key) => {
-                  const className = `py-3 px-5 ${
-                    key === authorsTableData.length - 1
-                      ? ""
-                      : "border-b border-blue-gray-50"
-                  }`;
 
-                  return (
-                    <tr key={name}>
-                      <td className={className}>
-                        <div className="flex items-center gap-4">
-                          <Avatar src={img} alt={name} size="sm" variant="rounded" />
-                          <div>
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-semibold"
-                            >
-                              {name}
-                            </Typography>
-                            <Typography className="text-xs font-normal text-blue-gray-500">
-                              {email}
-                            </Typography>
-                          </div>
-                        </div>
-                      </td>
-                      <td className={className}>
-                        <Typography className="text-xs font-semibold text-blue-gray-600">
-                          {job[0]}
-                        </Typography>
-                        <Typography className="text-xs font-normal text-blue-gray-500">
-                          {job[1]}
-                        </Typography>
-                      </td>
-                      <td className={className}>
-                        <Chip
-                          variant="gradient"
-                          color={online ? "green" : "blue-gray"}
-                          value={online ? "online" : "offline"}
-                          className="py-0.5 px-2 text-[11px] font-medium w-fit"
-                        />
-                      </td>
-                      <td className={className}>
-                        <Typography className="text-xs font-semibold text-blue-gray-600">
-                          {date}
-                        </Typography>
-                      </td>
-                      <td className={className}>
-                        <Typography
-                          as="a"
-                          href="#"
-                          className="text-xs font-semibold text-blue-gray-600"
-                        >
-                          Edit
-                        </Typography>
-                      </td>
-                    </tr>
-                  );
-                }
+        {/* Fetching the analytics */}
+          <div className="max-w-7xl mx-auto p-6">
+
+            <div className="mb-8">
+              <Typography variant="h6" color="blue-gray" className="block mb-2 font-normal">Select Month</Typography>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full md:w-64 border border-gray-400 p-2 rounded focus:outline-none focus:border-gray-900"
+              >
+                <option value="">-- Choose a Month --</option>
+                {Array.isArray(months) && months.map((month) => (
+                  <option key={month.value} value={month.value}>
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+              
+            {/* Charts */}
+            {analyticsData && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Line Chart - Views Over Time */}
+                <div className="bg-white p-6 rounded-xl shadow-lg">
+                  <Typography variant="h4" color="blue-gray" className="mb-4" >Views Over Time</Typography>
+                  <LineChart width={400} height={250} data={analyticsData.views_over_time}>
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="views" stroke="#4f46e5" />
+                  </LineChart>
+                </div>
+            
+                {/* Bar Chart - Likes per Blog */}
+                <div className="bg-white p-6 rounded-xl shadow-lg">
+                  <Typography variant="h4" color="blue-gray" className=" mb-4 ">Likes per Blog</Typography>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={analyticsData.likes_per_blog}>
+                      <XAxis 
+                        dataKey={(entry) => shortenTitle(entry.title)} 
+                        interval={0}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="like_count" fill="#10b981" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Pie char */}
+                {analyticsData.top_blog && (
+                <div className="bg-white p-6 rounded-xl shadow-lg col-span-1 md:col-span-2">
+                  <Typography variant="h4" color="blue-gray" className="mb-4">Top Performing Recent Blog</Typography>
+                  <Typography variant="h6" color="blue-gray" className="mb-4 font-normal">{analyticsData.top_blog.title}</Typography>
+                  <div className="flex justify-center">
+                    <PieChart width={300} height={300}>
+                      <Pie
+                        data={analyticsData.top_blog.data}
+                        dataKey="value"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                      >
+                        {analyticsData.top_blog.data.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </div>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+            )}
+          </div>
         </CardBody>
       </Card>
       <Card>
@@ -261,14 +323,10 @@ export function Analytics() {
                     </Button>
                   </Link>
                   <div>
-                  <Tooltip content="Like">
-                        <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogsIds.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(like.id)}/>
-                      </Tooltip>
-                      <Tooltip content="Save">
-                        <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
+                      <FontAwesomeIcon icon={faHandsClapping} className={`mr-4 text-2xl hover:text-blue-gray-700 hover:cursor-pointer ${likedBlogsIds.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"}`} onClick={()=>toggleLike(like.id)}/>
+                      <i className={`fas fa-bookmark mr-2 text-xl hover:cursor-pointer hover:text-blue-gray-700 ${
                         bookmarkedBlogs.includes(like.id)? "text-blue-gray-700" : "text-blue-gray-200"
                         }`} onClick={()=>toggleBookmark(like.id)}></i>
-                      </Tooltip>
                   </div>
                 </CardFooter>
               </Card>

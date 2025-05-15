@@ -1,6 +1,6 @@
 import { Routes, Route, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Cog6ToothIcon } from "@heroicons/react/24/solid";
-import { IconButton, Typography, Tooltip } from "@material-tailwind/react";
+import { IconButton, Button, Typography, Tooltip } from "@material-tailwind/react";
 import {
   BlogSideNav,
   DashboardNavbar,
@@ -141,21 +141,22 @@ export function BlogDetail() {
                 month: "short",
                 day: "numeric",
               })}
-              
+            
+            <div>
               <audio
                 id={`blog-audio-${blogId}`}
                 src={`http://localhost:8000/api/blogs/${blogId}/tts/`}
               />
-              <Tooltip content="Audio Blog">
-              <Typography variant="h6" color="blue-gray" onClick={togglePlay} className="cursor-pointer">
-              · {isPlaying ? "Pause 🔈" : "Play 🔊"}
-              </Typography>
-            </Tooltip>
+              <Button variant="h6" color="blue-gray" onClick={togglePlay} className="cursor-pointer">
+              {isPlaying ? "Pause 🔈" : "Play 🔊"}
+              </Button>
+            </div>
+              
             </Typography>
           </Typography>
             
           <img
-            src={`${BackendUrl}${blog.cover_image}`}
+            src={blog.cover_image}
             alt={blog.title}
             className="w-full h-auto object-cover mb-6 rounded-lg"
           />
@@ -180,14 +181,14 @@ export function BlogDetail() {
       <div className="fixed top-0 right-0 h-[calc(100vh-32px)] w-[18rem] rounded-xl my-4 mr-4 z-30 bg-white border border-blue-gray-100 shadow-md">
         <div className="overflow-hidden">
         <img
-            src={`${BackendUrl}${blog.author_banner}`}
+            src={blog.author_banner}
             alt={blog.author_name}
             className="object-cover rounded-t-lg"
           />
         </div>
         <div className="mx-auto w-32 h-32 relative -mt-16 border-4 border-white rounded-full overflow-hidden">
           <img
-            src={`${BackendUrl}${blog.author_image}`}
+            src={blog.author_image}
             alt={blog.author_name}
             className="object-cover mb-6 rounded-full object-center"
             />

@@ -101,6 +101,7 @@ export function Profile() {
       })
       .then((res) => {
         setBlogs(res.data)
+        console.log(blogs)
       })
       .catch((err) => {
         console.log("Failed to fetch blogs: ", err);

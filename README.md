@@ -1,2 +1,2 @@
 # Likhavat
-An open-source blogging platform designed to provide a seamless writing experience.
+A try at making an open-source blogging platform designed to provide a seamless writing experience.

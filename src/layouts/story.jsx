@@ -1,4 +1,3 @@
-import homebg from "../../public/img/homebg.jpg"
 import { Link } from "react-router-dom";
 
 export function Story(){

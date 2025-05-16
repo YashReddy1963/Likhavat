@@ -1,10 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
-import {
-  ChartPieIcon,
-  UserIcon,
-  UserPlusIcon,
-  ArrowRightOnRectangleIcon,
-} from "@heroicons/react/24/solid";
+import { Routes, Route } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import routes from "@/routes";
 

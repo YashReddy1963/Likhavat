@@ -3,6 +3,9 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Typography } from "@material-tailwind/react";
 import axios from "axios";
+import Confetti from "react-confetti";
+import { useWindowSize } from '@react-hook/window-size';
+import { useNavigate } from "react-router-dom";
 
 export function BlogEditor() {
   const [title, setTitle] = useState("")
@@ -14,9 +17,20 @@ export function BlogEditor() {
   const [showModal, setShowModal] = useState(false)
   const quillRef = useRef(null)
   const [assistantResults, setAssistantResults] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [width, height] = useWindowSize()
+  const navigate = useNavigate()
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  //a function for writing assistant
+  const stripHTML = (html) =>{
+    const div = document.createElement("div")
+    div.innerHTML = html
+    return div.textContent || div.innerHTML || ""
+  }
+
+  // function for writing assistant
   const handleWritingAssistant = async () =>{
+    setIsLoading(true)
     try{
       const res = await axios.post("http://localhost:8000/api/blogs/assistant/", {
         content: content,
@@ -30,6 +44,8 @@ export function BlogEditor() {
     } catch (err){
       console.error("Writing Assistant failed", err);
       alert("Something went wrong with Writing Assistant.");
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -86,8 +102,8 @@ export function BlogEditor() {
       if (contentType && contentType.includes("application/json")){
         const data = await response.json();
         if (response.ok) {
-          alert("Blog published!!")
           setShowModal(false)  
+          setShowSuccessModal(true)
         } else {
           console.error("Failed to publish blog: ", data);
         }
@@ -163,19 +179,28 @@ export function BlogEditor() {
         placeholder="Write your blog content here..."
         className="h-[600px] focus:outline-none focus:border-gray-800"
       />
+
       <button
         type="button"
         className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 mr-4"
         onClick={handleWritingAssistant}
+        disabled={isLoading}
       >
-        Writing Assistant
+        {isLoading ? (
+          <svg className="animate-spin h-4 w-4 mr-2 text-white" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        ) : null}
+        {isLoading ? "Analyzing..." : "Writing Assistant"}
       </button>
+
       <button type="button" class="text-white bg-black hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center text-bold dark:bg-blue-600 dark:hover:bg-white dark:focus:ring-white mt-16 w-20" onClick={handleNext}>
       Next</button>
 
       {/* Suggestions Output */}
       {assistantResults && (
-        <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+        <div className="mt-1 p-4 border rounded-lg bg-gray-50">
           <Typography variant="h6" className="font-semibold mb-2">
             Writing Assistant Suggestions
           </Typography>
@@ -197,7 +222,7 @@ export function BlogEditor() {
           </div>
             
           <div className="mb-2">
-            <strong>Keywords:</strong> {assistantResults.keywords.join(", ")}
+          <strong>Keywords:</strong> {stripHTML(assistantResults.keywords.join(", "))}
           </div>
             
           <div className="mb-2">
@@ -215,14 +240,34 @@ export function BlogEditor() {
 
       {/* Displaying the model for cover image and tags */}
       {showModal && (
-         <div className="modal mt-3">
-           <Typography className="text-xl mb-4 font-bold" color="blue-gray" variant="text">Blog Title: {currentBlogTitle}</Typography>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg relative">
+            <button
+              className="absolute top-2 right-2 text-gray-600 hover:text-black text-xl"
+              onClick={() => setShowModal(false)}
+            >
+              &times;
+            </button>
 
-           <label class="block mb-2 text-sm text-gray-600 dark:text-white" for="file_input">Upload file</label>
-           <input type="file" onChange={(e) => setCoverImage(e.target.files[0])} class="block w-full p-1 text-sm text-gray-900 border border-gray-500 " id="file_input"  />
+            <Typography className="text-xl mb-4 font-bold" color="blue-gray" variant="text">
+              Blog Title: {currentBlogTitle}
+            </Typography>
 
-           <label class="block mb-2 mt-2 text-sm text-gray-600 dark:text-white" for="text_input">Write tags</label>
-           <input
+            <label className="block mb-2 text-sm text-gray-600" htmlFor="file_input">
+              Upload Cover Image
+            </label>
+            <input
+              type="file"
+              onChange={(e) => setCoverImage(e.target.files[0])}
+              className="block w-full p-1 text-sm text-gray-900 border border-gray-500 mb-4"
+              id="file_input"
+            />
+
+
+            <label className="block mb-2 text-sm text-gray-600" htmlFor="text_input">
+              Tags (comma-separated)
+            </label>
+            <input
               type="text"
               className="w-full border p-2 mb-4 border-gray-500 focus:outline-none focus:border-gray-800"
               placeholder="Comma-separated tags"
@@ -230,9 +275,35 @@ export function BlogEditor() {
               onChange={(e) => setTags(e.target.value)}
             />
 
-           <button type="button" class="text-white bg-black hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 text-center text-bold dark:bg-blue-600 dark:hover:bg-white dark:focus:ring-white w-20" onClick={handleSubmit}>Publish</button>
-         </div>
-       )}
+            <button
+              type="button"
+              className="text-white bg-black hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 w-full"
+              onClick={handleSubmit}
+            >
+              Publish Blog
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-center">
+          <Confetti width={width} height={height} />
+          <div className="bg-white p-8 rounded-lg shadow-md text-center max-w-md">
+            <h2 className="text-2xl font-bold text-green-600 mb-4">🎉 Blog Published Successfully!</h2>
+            <p className="mb-6 text-gray-700">Your blog is now live and visible to everyone.</p>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={() => {
+                setShowSuccessModal(false);
+                navigate("/dashboard/home");
+              }}
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,34 +5,13 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  IconButton,
-  Menu,
-  MenuHandler,
-  MenuList,
-  MenuItem,
-  Avatar,
   Tooltip,
-  Progress,
   Button,
 } from "@material-tailwind/react";
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-} from "@heroicons/react/24/outline";
-import { StatisticsCard } from "@/widgets/cards";
-import { StatisticsChart } from "@/widgets/charts";
-import {
-  statisticsCardsData,
-  statisticsChartsData,
-  projectsTableData,
-  ordersOverviewData,
-} from "@/data";
-import projectsData from "@/data/projects-data";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { faHandsClapping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 export function Home() {
   const [blogs, setBlogs] = useState([])

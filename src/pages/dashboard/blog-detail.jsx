@@ -1,16 +1,11 @@
-import { Routes, Route, Outlet, useNavigate, useParams } from "react-router-dom";
-import { Cog6ToothIcon } from "@heroicons/react/24/solid";
-import { IconButton, Button, Typography, Tooltip } from "@material-tailwind/react";
+import { useParams } from "react-router-dom";
+import {  Button, Typography } from "@material-tailwind/react";
 import {
   BlogSideNav,
   DashboardNavbar,
-  Configurator,
-  Footer,
 } from "@/widgets/layout";
-import routes from "@/routes";
 import { Link } from "react-router-dom";
 import CommentSection from "@/widgets/layout/comment-section";
-import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -21,6 +16,7 @@ export function BlogDetail() {
   const [blog, setBlog] = useState(null)  
   const BackendUrl = "http://localhost:8000"
 
+  const [isAudioLoading, setIsAudioLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [modalTitle, setModalTitle] = useState("")
   const [isPlaying, setIsPlaying] = useState(false)
@@ -103,14 +99,35 @@ export function BlogDetail() {
   //used to toggle play of blog audio
   const togglePlay = () => {
     const audio = document.getElementById(`blog-audio-${blogId}`);
-    if (audio.paused) {
-      audio.play();
+    if (!audio) return;
+  
+    setIsAudioLoading(true);
+  
+    const handlePlay = () => {
       setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
+      setIsAudioLoading(false);
     }
-  }
+    const handlePause = () => {
+      setIsPlaying(false);
+      setIsAudioLoading(false);
+    }
+  
+    audio.removeEventListener("playing", handlePlay)
+    audio.removeEventListener("pause", handlePause)
+  
+    audio.addEventListener("playing", handlePlay)
+    audio.addEventListener("pause", handlePause)
+  
+    if (audio.paused) {
+      audio.play().catch((e) => {
+        console.error("Audio play error", e)
+        setIsAudioLoading(false);
+      })
+    } else {
+      audio.pause()
+    }
+  };
+  
 
   if(!blog) return <div>The blog is being loaded!!</div>
 
@@ -130,7 +147,7 @@ export function BlogDetail() {
           <Typography className="flex">
 
             <img
-              src={`${BackendUrl}${blog.author_image}`}
+              src={blog.author_image}
               alt={blog.author_name}
               className="w-10 object-cover mb-6 rounded-lg"
             />
@@ -142,16 +159,28 @@ export function BlogDetail() {
                 day: "numeric",
               })}
             
-            <div>
+            <div className="flex items-center gap-2">
               <audio
                 id={`blog-audio-${blogId}`}
                 src={`http://localhost:8000/api/blogs/${blogId}/tts/`}
               />
-              <Button variant="h6" color="blue-gray" onClick={togglePlay} className="cursor-pointer">
-              {isPlaying ? "Pause 🔈" : "Play 🔊"}
+
+              <Button
+                variant="h6"
+                color="blue-gray"
+                onClick={togglePlay}
+                className="cursor-pointer bg-blue-gray-900"
+                disabled={isAudioLoading}
+              >
+                {isAudioLoading ? (
+                  <svg className="animate-spin h-4 w-4 text-blue-600" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : isPlaying ? "Pause 🔈" : "Play 🔊"}
               </Button>
             </div>
-              
+
             </Typography>
           </Typography>
             

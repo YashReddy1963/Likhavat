@@ -1,7 +1,5 @@
 import {
-  Card,
   Input,
-  Checkbox,
   Button,
   Typography,
 } from "@material-tailwind/react";
@@ -27,7 +25,7 @@ export function SignIn() {
       if(response.status === 200 || response.status === 201){
         localStorage.setItem("accessToken", response.data.access);
         localStorage.setItem("refreshToken", response.data.refresh);
-        navigate("/dashboard/home")
+        navigate("/dashboard/profile")
       }
     }catch(err){
       console.error(err)
@@ -89,7 +87,8 @@ export function SignIn() {
             Sign in
           </Button>
 
-          <div className="space-y-4 mt-8">
+            {/* 
+            <div className="space-y-4 mt-8">
             <Button size="lg" color="white" className="flex items-center gap-2 justify-center shadow-md" fullWidth>
               <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_1156_824)">
@@ -107,6 +106,8 @@ export function SignIn() {
               <span>Sign in With Google</span>
             </Button>
           </div>
+            */}
+          
           <Typography variant="paragraph" className="text-center text-blue-gray-500 font-medium mt-4">
             Not registered?
             <Link to="/auth/sign-up" className="text-gray-900 ml-1">Sign up</Link>

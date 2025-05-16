@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
   Avatar,
@@ -10,9 +10,29 @@ import {
 import { useMaterialTailwindController, setOpenSidenav } from "@/context";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import isProfileComplete from "../../configs/profile-details-check"
+import api from "@/configs/api";
+import { UpdateProfileModal } from "../cards";
 
 export function Sidenav({ brandImg, brandName, routes }) {
 
+  //for checking all profile fields are present or not
+  const [profileData, setProfileData] = useState({
+    id:"",
+    firstName: "",
+    email: "",
+    bio: "",
+    social: {
+      twitter: "",
+      linkedin: "",
+      github: "",
+    },
+    profileImage: null,
+    bannerImage: null,
+  })
+
+  const[showModal, setShowModal] = useState(false)
+  const navigate = useNavigate()
   const [unseenCount, setUnseenCount] = useState("")
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavColor, sidenavType, openSidenav } = controller;
@@ -21,6 +41,36 @@ export function Sidenav({ brandImg, brandName, routes }) {
     white: "bg-white shadow-sm",
     transparent: "bg-transparent",
   }
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      //fetching user profile detials
+      try {
+        const response = await api.get("profile/", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        })
+        const data = response.data
+        setProfileData({
+          firstName: data.name || "",
+          email: data.email || "",
+          bio: data.bio || "",
+          social: data.social_links || {
+            twitter: "",
+            linkedin: "",
+            github: "",
+          },
+          profileImage: data.profile_image || null,
+          bannerImage: data.banner_image || null,
+        })
+      } catch (err) {
+        console.error("Failed to fetch profile data:", err);
+      }
+    }
+
+    fetchProfile();
+  }, [])
 
   useEffect(() => {
     const fetchUnseenCount = async() => {
@@ -87,8 +137,15 @@ export function Sidenav({ brandImg, brandName, routes }) {
             
               return (
                 <li key={name} className="relative">
-                  <NavLink to={`/${layout}${path}`}>
                     <Button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        if (isProfileComplete(profileData)){
+                          navigate(`/${layout}${path}`)
+                        } else {
+                          setShowModal(true)
+                        }
+                      }}
                       variant={isActive ? "gradient" : "text"}
                       color={
                         isActive
@@ -113,13 +170,13 @@ export function Sidenav({ brandImg, brandName, routes }) {
                         </span>
                       )}
                     </Button>
-                  </NavLink>
                 </li>
               );
             })}
           </ul>
         ))}
       </div>
+      <UpdateProfileModal isOpen={showModal} onClose={() => setShowModal(false)}/>
     </aside>
   );
 }

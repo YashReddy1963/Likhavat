@@ -3,14 +3,9 @@ import {
   CardHeader,
   CardBody,
   Typography,
-  Avatar,
-  Chip,
   CardFooter,
   Button,
-  Progress,
 } from "@material-tailwind/react";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
-import { authorsTableData, projectsTableData } from "@/data";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";

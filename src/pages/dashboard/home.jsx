@@ -114,7 +114,7 @@ export function Home() {
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
         {blogs.map(
           (blog) => (
-            <Card key={blog.id} color="transparent" shadow={false}>
+            <Card key={blog.id} color="transparent" shadow={false} className="">
               <CardHeader
                 floated={false}
                 color="gray"

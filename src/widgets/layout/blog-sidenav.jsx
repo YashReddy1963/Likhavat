@@ -201,7 +201,7 @@ export function BlogSideNav({ brandName, authorId }) {
 
 BlogSideNav.defaultProps = {
   brandImg: "/img/logo-ct.png",
-  brandName: "Related Posts",
+  brandName: "Related Posts by Author",
 };
 
 BlogSideNav.propTypes = {

@@ -23,6 +23,7 @@ export function BlogDetail() {
   const [userList, setUserList] = useState([])
   const [followers, setFollowers] = useState()
   const [following, setFollowing] = useState()
+  const [followError, setFollowError] = useState("")
 
   //Use to fetch blog data
   useEffect(() => {
@@ -38,7 +39,15 @@ export function BlogDetail() {
     .catch((err)=> console.log(err))
   }, [blogId])
 
+  //auto closing the follow error message
+  useEffect(() => {
+    if (followError) {
+      const timer = setTimeout(() => setFollowError(""), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [followError]);
   
+
   useEffect(() =>{
     if (!userId) return
     
@@ -75,8 +84,13 @@ export function BlogDetail() {
         setIsFollowing(false)
       }
       console.log("After toggle: ", isFollowing)
-    }).catch(err => console.log(err))
-
+    }).catch(err => {
+      if (err.response && err.response.data && err.response.data.error === "You cannot follow yourself"){
+        setFollowError("You cannot follow yourself")
+      } else {
+        console.log(err)
+      }
+    })
   }
 
   //Function to fetch the following and followers list
@@ -144,45 +158,49 @@ export function BlogDetail() {
           <Typography variant="h1" color="blue-gray" className="mb-4">
             {blog.title}
           </Typography>
-          <Typography className="flex">
 
+        <Typography className="flex items-center justify-between w-full rounded-lg p-2">
+          <div className="flex items-center">
             <img
               src={blog.author_image}
               alt={blog.author_name}
-              className="w-10 object-cover mb-6 rounded-lg"
+              className="w-10 h-10 object-cover rounded-lg mr-3"
             />
-            <Typography variant="h6" color="blue-gray" className="m-2 flex gap-2">
-              <Link>{blog.author_name}</Link> ·{" "}
-              {new Date(blog.created_at).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            
-            <div className="flex items-center gap-2">
-              <audio
-                id={`blog-audio-${blogId}`}
-                src={`http://localhost:8000/api/blogs/${blogId}/tts/`}
-              />
-
-              <Button
-                variant="h6"
-                color="blue-gray"
-                onClick={togglePlay}
-                className="cursor-pointer bg-blue-gray-900"
-                disabled={isAudioLoading}
-              >
-                {isAudioLoading ? (
-                  <svg className="animate-spin h-4 w-4 text-blue-600" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                  </svg>
-                ) : isPlaying ? "Pause 🔈" : "Play 🔊"}
-              </Button>
-            </div>
-
+            <Typography variant="h6" color="blue-gray" className="flex items-center space-x-2">
+              <Link>{blog.author_name}</Link>
+              <span>·</span>
+              <span>
+                {new Date(blog.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
             </Typography>
-          </Typography>
+          </div>
+              
+          <div className="flex items-center">
+            <audio
+              id={`blog-audio-${blogId}`}
+              src={`http://localhost:8000/api/blogs/${blogId}/tts/`}
+            />
+
+            <Button
+              variant="h6"
+              color="blue-gray"
+              onClick={togglePlay}
+              className="cursor-pointer bg-blue-gray-900"
+              disabled={isAudioLoading}
+            >
+              {isAudioLoading ? (
+                <svg className="animate-spin h-4 w-4 text-blue-600" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                </svg>
+              ) : isPlaying ? "Pause 🔈" : "Play 🔊"}
+            </Button>
+          </div>
+        </Typography>
             
           <img
             src={blog.cover_image}
@@ -276,12 +294,19 @@ export function BlogDetail() {
             </div>
           </a>
         </div>
+
         <div className="flex flex-col justify-center items-center">
           <button type="button" onClick={handleFollowToggle} className={`text-white w-24 ${isFollowing ? "bg-red-600" : "bg-black"} hover:bg-gray-900 font-medium rounded-lg text-sm px-4 py-2 text-center text-bold mt-2`}>
             {isFollowing ? "Unfollow" : "Follow"}
-          
           </button>
         </div>
+        {followError && (
+          <div className="my-4 mr-4 ml-4 z-50 bg-red-600 text-white px-4 py-2 rounded shadow-lg flex items-center justify-between w-64">
+            <span>{followError}</span>
+            <button onClick={() => setFollowError("")} className="ml-4 font-bold">✕</button>
+          </div>
+        )}
+
       </div>
 
       {/* Pop container to dispaly followers-following list*/}
